@@ -1,0 +1,31 @@
+name: Feature request / proposal
+description: Suggest an idea or propose work you'd like to do
+labels: ["enhancement", "triage"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or motivation
+      description: What problem does this solve, and for whom?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+  - type: dropdown
+    id: implement
+    attributes:
+      label: Would you like to implement this yourself?
+      options:
+        - "Yes — please assign me after approval"
+        - "Maybe, with guidance"
+        - "No, just suggesting"
+    validations:
+      required: true

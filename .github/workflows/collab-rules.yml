@@ -1,0 +1,50 @@
+name: Collaboration rules
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  pr-rules:
+    runs-on: ubuntu-latest
+    steps:
+      - name: PR title follows Conventional Commits
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          if ! echo "$TITLE" | grep -Eq '^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([a-z0-9._/-]+\))?!?: .+'; then
+            echo "::error::PR title must follow Conventional Commits, e.g. 'feat: add X' (got: '$TITLE')"
+            exit 1
+          fi
+
+      - name: AI disclosure is filled in
+        env:
+          BODY: ${{ github.event.pull_request.body }}
+        run: |
+          # ignore the example lines inside <!-- --> comments of the template
+          clean=$(printf '%s\n' "$BODY" | perl -0pe 's/<!--.*?-->//gs')
+          line=$(printf '%s\n' "$clean" | grep -iE '^[[:space:]]*AI disclosure:' | tail -n 1 || true)
+          value=$(printf '%s' "$line" | sed -E 's/^[[:space:]]*[Aa][Ii] [Dd]isclosure:[[:space:]]*//')
+          if [ -z "$line" ] || [ -z "$value" ]; then
+            echo "::error::Fill in the 'AI disclosure:' line in the PR description (write 'None.' if you used no AI). See AI_POLICY.md."
+            exit 1
+          fi
+          echo "AI disclosure: $value"
+
+  agent-shims-intact:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Per-LLM rule files still point to AGENTS.md
+        run: |
+          set -e
+          test -f AGENTS.md || { echo "::error::AGENTS.md is missing"; exit 1; }
+          grep -q '@AGENTS.md' CLAUDE.md || { echo "::error::CLAUDE.md must import @AGENTS.md"; exit 1; }
+          grep -q 'AGENTS.md' .github/copilot-instructions.md || { echo "::error::copilot-instructions.md must reference AGENTS.md"; exit 1; }
+          grep -q 'AGENTS.md' .cursor/rules/project.mdc || { echo "::error::Cursor rule must reference AGENTS.md"; exit 1; }
+          grep -q '"AGENTS.md"' .gemini/settings.json || { echo "::error::.gemini/settings.json must set contextFileName to AGENTS.md"; exit 1; }
+          echo "All agent rule files point to AGENTS.md ✔"
