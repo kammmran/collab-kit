@@ -30,9 +30,9 @@ CODE_OF_CONDUCT.md
 ## Install (5 minutes)
 
 ```bash
-# 1. copy everything into the root of your repo
-cp -r collab-kit/. /path/to/your-repo/
-cd /path/to/your-repo && rm COLLAB_KIT_README.md   # after reading it
+# 1. merge the files listed in README.md into your project
+# Keep its existing README, package scripts, configuration, and Git metadata.
+cd /path/to/your-repo
 
 # 2. let Claude Code read the project and fill in the AUTO sections
 claude
@@ -47,8 +47,14 @@ Then on GitHub:
 - **Settings → General → Features:** enable Discussions (the issue template links to it).
 - **Settings → Branches:** protect `main` — require a PR, 1 approval, and the
   `Collaboration rules` checks to pass.
-- Create labels `good first issue`, `help wanted`, `triage`, `question`.
-- Replace `OWNER/REPO` and the maintainer email if the skill couldn't find them.
+- Create labels `good first issue`, `help wanted`, `bug`, `enhancement`, `triage`, `question`.
+- Set the Discussions URL to your repository and review the Code of Conduct reporting guidance.
+
+The current `AGENTS.md` AUTO sections describe this kit; regenerate them for the
+destination project. The documentation CI job also needs the check tooling listed
+in [README.md](README.md#set-up-in-your-project). Merge those files with existing
+tooling before enabling the job. For local verification, follow the
+[local check commands](README.md#local-checks).
 
 ## How it works across LLMs
 

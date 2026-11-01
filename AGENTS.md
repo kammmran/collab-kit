@@ -33,44 +33,67 @@
 
 ## 1. Project overview <!-- AUTO -->
 
-- **What it is:** _one or two sentences on what the project does and for whom._
-- **Status:** _e.g. alpha / stable; who maintains it._
-- **Primary language(s) / framework(s):** _…_
-- **Runtime / platform:** _e.g. browser (GitHub Pages), Node ≥ 20, Python 3.11, Obsidian ≥ 1.5…_
+- **What it is:** A reusable collaboration kit: policies, agent instructions, GitHub
+  templates, and checks for contributors and maintainers (see `README.md`).
+- **Repository:** `kammmran/collab-kit`; project-specific rules must be adapted when
+  copying the kit to another repository.
+- **Languages:** Markdown, YAML/JSON configuration, and JavaScript documentation tools.
+- **Runtime:** Node.js ≥ 22 and npm for checks (`package.json`); GitHub Actions for CI.
 
 ## 2. Repository map <!-- AUTO -->
 
 ```
-_tree of the important top-level folders, one line each explaining what lives there_
+README.md / COLLAB_KIT_README.md   Overview, collaboration workflow, and adoption guide
+AGENTS.md / CONTRIBUTING.md       Agent rules and human contribution process
+AI_POLICY.md / CODE_OF_CONDUCT.md Disclosure and community policies
+LICENSE                          Apache License 2.0
+.github/                         Issue/PR templates and collaboration CI
+.claude/skills/                   Rule maintenance, onboarding, and pre-PR skills
+CLAUDE.md / .cursor/ / .gemini/    Tool-specific references to AGENTS.md
+scripts/check-links.mjs           Offline local Markdown link validation
+tests/check-links.test.mjs        Link-checker regression tests
+package.json / package-lock.json  Check commands and pinned development dependencies
+.editorconfig / .gitignore        Editor conventions and local-file exclusions
+.markdownlint-cli2.yaml           Markdown lint scope and style rules
 ```
 
 Files/folders agents must **not** edit without explicit permission:
 - `LICENSE`, `AGENTS.md` (except via the skill), release/version files, generated files (`dist/`, `build/`, lockfiles unless adding a dependency)
-- _project-specific additions_
+- `node_modules/` is installed dependency output; do not edit it manually.
 
 ## 3. Setup, build, test <!-- AUTO -->
 
 ```bash
-# install
-_command_
-# run locally / dev server
-_command_
-# test
-_command_
-# lint / format / type-check
-_command_
-# build
-_command_
+# install check tooling (network access required on a fresh checkout)
+npm ci --ignore-scripts --no-audit --no-fund
+# Markdown lint, local links, and checker regression tests
+npm run check
+# individual checks
+npm run lint
+npm run check:links
+npm test
+# whitespace review
+git diff --check
 ```
+
+No dev server, application build, or static type-check is configured. For this kit,
+those steps are not applicable. Inspect rendered Markdown for documentation changes.
+Checks run offline after installation; external links are not fetched. The
+`documentation` CI job runs the same install and check commands.
 
 **Definition of done for any change:** install ✔ · lint ✔ · type-check ✔ · tests ✔ · builds ✔ ·
 manually checked the feature works (screenshot or output for UI/visual changes).
 
 ## 4. Code conventions <!-- AUTO -->
 
-- **Style/formatter:** _e.g. Prettier + ESLint config in repo; Ruff/Black for Python._
-- **Naming:** _files, functions, components, CSS classes._
-- **Structure patterns to follow:** _e.g. "one component per file in src/components", "pure functions in src/lib, side effects only in src/main.ts"._
+- **Style:** `.editorconfig` specifies UTF-8, LF, final newlines, and two-space
+  indentation. Markdown allows intentional trailing spaces for hard line breaks.
+  `.markdownlint-cli2.yaml` preserves existing compact lists and long tables.
+- **Naming:** Policy files use uppercase names; skill folders and JavaScript tools
+  use lowercase hyphenated names. Tests use `*.test.mjs` under `tests/`.
+- **Structure:** Shared agent rules live here; tool-specific files reference them.
+  Each `.claude/skills/<name>/` has one `SKILL.md`. Tools use ES modules under
+  `scripts/` and Node's built-in test runner under `tests/` (`package.json`).
 - **Dependencies:** prefer the standard library and what's already installed. Adding a dependency
   requires a one-line justification in the PR.
 - **Comments/docs:** explain *why*, not *what*. Update README/docs when behaviour changes.
@@ -101,8 +124,17 @@ manually checked the feature works (screenshot or output for UI/visual changes).
 
 ## 7. Project-specific notes <!-- AUTO -->
 
-_Domain knowledge an agent needs that isn't obvious from the code (e.g. units, data sources,
-known pitfalls, performance limits, browser support, accessibility requirements)._
+- This is a kit, not an application. Keep adoption instructions distinct from
+  this repository's own development commands (`README.md`).
+- When copying the kit, merge existing settings and regenerate the AUTO sections
+  for the destination project. Do not copy this repository's Git metadata.
+- CI validates PR titles, AI disclosure presence, agent-rule references, Markdown,
+  and local links. Branch protection and Discussions require GitHub configuration.
+- The link checker validates Markdown links/images and Markdown heading fragments,
+  including reference links. Raw HTML links/anchors and external URLs are outside
+  its scope. Git supplies tracked and unignored Markdown paths.
+- Keep dependencies limited to documentation tooling: `markdownlint-cli2` for
+  linting, `markdown-it` for parsing, and `github-slugger` for heading IDs.
 
 ---
 

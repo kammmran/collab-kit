@@ -1,0 +1,17 @@
+globs:
+  - "**/*.md"
+ignores:
+  - "node_modules/**"
+  - "coverage/**"
+  - "dist/**"
+  - "build/**"
+config:
+  default: true
+  # Preserve existing long tables, compact lists, and language-free examples.
+  MD013: false
+  MD031: false
+  MD032: false
+  MD040: false
+  MD060: false
+  # Tool entry points and the PR template do not start with a level-one heading.
+  MD041: false
