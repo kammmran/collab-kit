@@ -10,14 +10,17 @@ specific; the goal is a PR the maintainer can review quickly.
 
 ## 1. Gather
 
-- Read `AGENTS.md`, `CONTRIBUTING.md`, `AI_POLICY.md`, `.github/PULL_REQUEST_TEMPLATE.md`.
+- Read `AGENTS.md`, the `docs/agents/` reference it links to, `CONTRIBUTING.md`, `AI_POLICY.md`,
+  `.github/PULL_REQUEST_TEMPLATE.md`.
 - `git fetch origin` (if allowed), then `git diff --stat origin/main...HEAD`,
   `git diff origin/main...HEAD`, `git log --oneline origin/main..HEAD`.
 
 ## 2. Run the checks from `AGENTS.md §3`
 
-Run lint, type-check, tests and build. Report each as ✅ / ❌ with the key error lines.
-Do not "fix" a failing test by deleting, skipping or loosening it.
+Run lint, type-check, tests and build — in this repo `npm run check`, which also runs
+`npm run check:context`. Report each as ✅ / ❌ with the key error lines. Do not "fix" a failing
+test by deleting, skipping or loosening it, and do not raise a token budget to make
+`check:context` pass: shorten the always-loaded rules or move detail into `docs/agents/`.
 
 ## 3. Review against the rules
 

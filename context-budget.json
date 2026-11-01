@@ -1,0 +1,12 @@
+{
+  "_about": "Budgets for the instruction files AI tools load in every session. See README.md#local-checks; run: npm run check:context",
+  "charsPerToken": 4,
+  "defaultBudget": 1800,
+  "groups": {
+    "claude": { "entries": ["CLAUDE.md"] },
+    "cursor": { "entries": [".cursor/rules/*.mdc", "AGENTS.md"] },
+    "copilot": { "entries": [".github/copilot-instructions.md", "AGENTS.md"] },
+    "gemini": { "entries": ["AGENTS.md"] },
+    "skills": { "entries": [".claude/skills/*/SKILL.md"], "frontMatterOnly": true, "budget": 400 }
+  }
+}

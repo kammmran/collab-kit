@@ -1,5 +1,8 @@
 # Collaboration kit
 
+> Thanks to [@0rkhann](https://github.com/0rkhann) and his project, which motivated me to build
+> this one.
+
 Shared contribution rules for humans and AI coding assistants. This kit provides
 project policies, agent instructions, GitHub templates, and collaboration checks
 that you can adapt to your own repository.
@@ -9,12 +12,69 @@ Claude Code, Cursor, GitHub Copilot, and Gemini CLI configuration files point to
 so project instructions stay in one place. Contributors remain responsible for
 understanding, reviewing, testing, and submitting their work.
 
+## Install
+
+Requires Node.js 22 or newer, npm, and Git — and only for the checks and the wizard; the
+policies themselves work with no tooling at all.
+
+**1. Copy the kit into your repository**, from your project's root:
+
+```bash
+git clone --depth 1 https://github.com/kammmran/collab-kit /tmp/collab-kit
+
+cp -R /tmp/collab-kit/{AGENTS.md,CLAUDE.md,CONTRIBUTING.md,AI_POLICY.md,CODE_OF_CONDUCT.md} .
+cp -R /tmp/collab-kit/{docs,scripts,tests,context-budget.json} .
+cp -R /tmp/collab-kit/{.editorconfig,.markdownlint-cli2.yaml} .
+cp -R /tmp/collab-kit/{.github,.claude,.cursor,.gemini} .   # merge with yours; review first
+rm -rf /tmp/collab-kit
+```
+
+Review every overlapping file before you replace it, and keep your own `README.md`.
+
+**2. Add the commands to your `package.json`** (merge with the scripts you already have), then
+install the two linting dependencies:
+
+```json
+"scripts": {
+  "setup": "node scripts/setup.mjs",
+  "lint": "markdownlint-cli2",
+  "check:links": "node scripts/check-links.mjs",
+  "check:context": "node scripts/check-context.mjs",
+  "test": "node --test",
+  "check": "npm run lint && npm run check:links && npm run check:context && npm test"
+}
+```
+
+```bash
+npm install --save-dev markdownlint-cli2@0.24.0 markdown-it@15.0.3 github-slugger@2.0.0
+```
+
+**3. Answer the setup questions**, then run the checks:
+
+```bash
+npm run setup                 # or: node scripts/setup.mjs
+npm run setup -- --dry-run    # optional: see the answers it detects, write nothing
+npm run check                 # lint + local links + agent context budget + tests
+```
+
+`npm run setup` asks about your project in the terminal — name, description, repository,
+languages, runtime, install and check commands, which AI tools to keep, the code-of-conduct
+contact, and the token budget — shows the files it would change, and writes nothing until you
+confirm with `y`. Blank answers become `_TODO(maintainer): …_` instead of invented text. With
+Claude Code, run `/collab-rules-builder` afterwards to draft the remaining `<!-- AUTO -->`
+sections from your codebase, then review the result.
+
+Then finish the GitHub side — Discussions, labels and branch protection — as described in
+[Set up in your project](#set-up-in-your-project).
+
 ## Contents
 
+- [Install](#install)
 - [What's included](#whats-included)
 - [File and folder organisation](#file-and-folder-organisation)
 - [Set up in your project](#set-up-in-your-project)
 - [Local checks](#local-checks)
+- [Keeping agent context small](#keeping-agent-context-small)
 - [Included skills](#included-skills)
 - [What CI checks](#what-ci-checks)
 - [Collaboration workflow](#collaboration-workflow)
@@ -35,10 +95,12 @@ understanding, reviewing, testing, and submitting their work.
 | [`.github/ISSUE_TEMPLATE/`](.github/ISSUE_TEMPLATE/) | Bug reports, feature requests, and a Discussions link |
 | [`.github/PULL_REQUEST_TEMPLATE.md`](.github/PULL_REQUEST_TEMPLATE.md) | Review checklist and required AI disclosure |
 | [`.github/workflows/collab-rules.yml`](.github/workflows/collab-rules.yml) | GitHub Actions checks for contribution rules |
+| [`docs/agents/`](docs/agents/) | Repository map, conventions, and project notes agents read on demand |
+| [`context-budget.json`](context-budget.json) | Token budgets for the instruction files AI tools load every session |
 | [`.claude/skills/`](.claude/skills/) | Guided onboarding, rule maintenance, and pre-PR review instructions |
 | [`.editorconfig`](.editorconfig) / [`.gitignore`](.gitignore) | Shared editor settings and local-file exclusions |
 | [`package.json`](package.json) / [`.markdownlint-cli2.yaml`](.markdownlint-cli2.yaml) | Documentation check commands and Markdown rules |
-| [`scripts/`](scripts/) / [`tests/`](tests/) | Local link checker and regression tests |
+| [`scripts/`](scripts/) / [`tests/`](tests/) | Setup wizard, link checker, agent context budget check, and their tests |
 
 ## File and folder organisation
 
@@ -49,7 +111,7 @@ collab-kit/
 ├── README.md                         # Project overview and collaboration guide
 ├── COLLAB_KIT_README.md              # Additional setup background
 ├── LICENSE                           # Apache License 2.0
-├── AGENTS.md                         # Shared rules for coding assistants
+├── AGENTS.md                         # Shared rules for coding assistants (loaded every session)
 ├── CONTRIBUTING.md                   # Contribution process for humans
 ├── AI_POLICY.md                      # AI responsibility and disclosure rules
 ├── CODE_OF_CONDUCT.md                # Community expectations
@@ -57,12 +119,22 @@ collab-kit/
 ├── .editorconfig                     # Whitespace and encoding conventions
 ├── .gitignore                        # Local and generated file exclusions
 ├── .markdownlint-cli2.yaml           # Markdown lint configuration
-├── package.json                      # Documentation check commands
+├── context-budget.json               # Token budgets for always-loaded instructions
+├── package.json                      # Setup and documentation check commands
 ├── package-lock.json                 # Locked development dependencies
+├── docs/
+│   └── agents/
+│       ├── repo-map.md               # Repository map, read on demand
+│       ├── conventions.md            # Code conventions, read on demand
+│       └── project-notes.md          # Project-specific notes, read on demand
 ├── scripts/
-│   └── check-links.mjs               # Offline local Markdown link checker
+│   ├── setup.mjs                     # Interactive setup for an adopting project
+│   ├── check-links.mjs               # Offline local Markdown link checker
+│   └── check-context.mjs             # Always-loaded agent context budget
 ├── tests/
-│   └── check-links.test.mjs          # Link-checker regression tests
+│   ├── check-links.test.mjs          # Link-checker regression tests
+│   ├── check-context.test.mjs        # Context-budget regression tests
+│   └── setup.test.mjs                # Setup wizard regression tests
 ├── .claude/
 │   └── skills/
 │       ├── collab-rules-builder/
@@ -143,13 +215,24 @@ example layout.
 ## Set up in your project
 
 1. Copy `AGENTS.md`, `CLAUDE.md`, `CONTRIBUTING.md`, `AI_POLICY.md`, and
-   `CODE_OF_CONDUCT.md` into your repository root. Merge the contents of `.github/`,
-   `.claude/`, `.cursor/`, and `.gemini/` with any existing configuration. Review
-   overlapping files before replacing them, and keep your project's own README.
-2. Fill in the project-specific sections of `AGENTS.md`: overview, repository map,
-   setup and verification commands, conventions, and domain notes. With Claude
-   Code, run `/collab-rules-builder` from the destination repository to draft these
-   sections, then review the result.
+   `CODE_OF_CONDUCT.md` into your repository root, together with `docs/agents/` and
+   `context-budget.json`. Merge the contents of `.github/`, `.claude/`, `.cursor/`, and
+   `.gemini/` with any existing configuration. Review overlapping files before replacing them,
+   and keep your project's own README.
+2. Run the setup wizard in the destination repository:
+
+   ```bash
+   npm run setup          # add --  --dry-run to see the answers it detects first
+   ```
+
+   It asks about the project in the terminal — name, one-sentence description, repository,
+   languages, runtime, install and check commands, which AI tools to keep, the code-of-conduct
+   contact, and the token budget — then shows the files it would change and waits for a `y`
+   before writing anything. Answers you leave blank become `_TODO(maintainer): …_` rather than
+   invented text, and files belonging to tools you drop are deleted only after a second
+   confirmation. Afterwards, fill in the remaining detail: with Claude Code, run
+   `/collab-rules-builder` to draft the `<!-- AUTO -->` sections of `AGENTS.md` and
+   `docs/agents/` from your codebase, then review the result.
 3. Set the Discussions URL in `.github/ISSUE_TEMPLATE/config.yml` to your own
    repository and review the reporting guidance in `CODE_OF_CONDUCT.md`.
    Review all policies and templates
@@ -167,8 +250,10 @@ CI job, also merge `package.json`, `.markdownlint-cli2.yaml`, `.editorconfig`, a
 `.gitignore`, and copy `scripts/check-links.mjs` and `tests/check-links.test.mjs`.
 For a project without an existing npm manifest, copy `package-lock.json` as well;
 otherwise regenerate its lockfile after merging dependencies and scripts. Keep
-the destination project's existing commands and settings. Regenerate `AGENTS.md`
-for that project; the checked-in AUTO sections describe this kit.
+the destination project's existing commands and settings. The wizard and the context budget
+check need `scripts/setup.mjs`, `scripts/check-context.mjs`, `context-budget.json` and their
+tests. Regenerate `AGENTS.md` and `docs/agents/` for that project; the checked-in AUTO sections
+describe this kit.
 
 See the [setup guide](COLLAB_KIT_README.md) for additional background and related
 tools.
@@ -189,8 +274,10 @@ After installation, all checks run locally without fetching external websites.
 |---|---|
 | `npm run lint` | Markdown style, including policies, templates, and skill files |
 | `npm run check:links` | Local Markdown links, images, and Markdown heading fragments |
-| `npm test` | Link-checker regression tests using Node's built-in test runner |
-| `npm run check` | All three checks in sequence; stops on failure |
+| `npm run check:context` | Estimated size of the instruction files each AI tool loads every session |
+| `npm test` | Regression tests for the scripts, using Node's built-in test runner |
+| `npm run check` | All four checks in sequence; stops on failure |
+| `npm run setup` | Not a check: the interactive setup wizard for a project adopting the kit |
 | `git diff --check` | Whitespace errors in tracked changes |
 
 There is no application build, dev server, or static type-check for this kit.
@@ -209,6 +296,42 @@ configuration folders. It handles relative paths, root-relative paths, reference
 links, and heading fragments. It does not validate external URLs, raw HTML links
 or anchors, or fragment IDs in non-Markdown files. Keep shared documentation
 links in Markdown syntax so they can be checked.
+
+## Keeping agent context small
+
+Every AI tool reloads its instruction files at the start of each session, and some reload them on
+every turn, so each line in `AGENTS.md` is paid for again and again. This kit keeps that payload
+small in three ways:
+
+1. **`AGENTS.md` holds only what every task needs** — the golden rules, the project overview, the
+   commands, and the Git/PR workflow.
+2. **Reference material lives in [`docs/agents/`](docs/agents/)** — the repository map,
+   conventions, and project notes, each with a "read this before …" trigger in `AGENTS.md`, so an
+   agent opens the file when the task calls for it instead of carrying it everywhere.
+3. **The tool-specific files stay pointers.** `CLAUDE.md`, the Cursor rule, and the Copilot
+   instructions only point at `AGENTS.md`; Cursor and Copilot also read `AGENTS.md` natively, so a
+   rules summary in a shim would be loaded, and paid for, twice.
+
+`npm run check:context` measures what is left and fails when a tool's always-loaded context grows
+past its budget:
+
+```text
+claude: ~1510 tokens of 1800 (6079 bytes) — ok
+  CLAUDE.md: ~111 tokens
+  AGENTS.md (imported by CLAUDE.md): ~1399 tokens
+```
+
+It follows Claude-style `@file` imports (so `CLAUDE.md` is counted together with `AGENTS.md`),
+counts a Cursor rule only when it is `alwaysApply: true`, counts only the front matter of
+`.claude/skills/*/SKILL.md` — that is the part agents load every session — and skips the files of
+tools a project does not use. `--json` prints the report for other tooling, `--no-fail` reports
+without gating, and `--budget <n>` overrides every budget for one run.
+
+Budgets and file groups live in [`context-budget.json`](context-budget.json). **Token counts are
+estimates:** the script divides characters by `charsPerToken` (4 by default), because the real
+count depends on each model's tokenizer; bytes are shown alongside so the numbers can be checked
+by hand. Treat the budget as a drift alarm — when it fires, shorten the rules or move detail into
+`docs/agents/` rather than raising the number.
 
 ## Included skills
 
@@ -237,7 +360,7 @@ pull request is opened, edited, updated, or reopened. It checks that:
 - The PR body contains a nonempty `AI disclosure:` line outside HTML comments.
 - `AGENTS.md` exists and the four tool-specific configuration files still
   reference it.
-- Markdown lint, local links, and the link-checker tests pass.
+- Markdown lint, local links, the agent context budget, and the script tests pass.
 
 These checks validate contribution metadata, documentation, and instruction
 references. Add your project's application lint, type-check, test, and build jobs

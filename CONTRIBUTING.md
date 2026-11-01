@@ -24,7 +24,8 @@ If you use Claude Code, run `/onboard-me` for a guided tour of the codebase.
 
 - Fork → branch from `main`: `feat/…`, `fix/…`, `docs/…`.
 - Keep changes **small and focused** — one concern per PR (aim for < 400 changed lines).
-- Follow the existing code style and structure (details in `AGENTS.md` §4).
+- Follow the existing code style and structure (details in
+  [`docs/agents/conventions.md`](docs/agents/conventions.md), linked from `AGENTS.md` §4).
 - Add or update tests for behaviour you change. Never delete or skip a test to make CI pass.
 - Update docs/README if user-visible behaviour changes.
 - Commit messages and PR titles use **Conventional Commits** (`feat: add X`, `fix: Y`).
@@ -33,7 +34,7 @@ If you use Claude Code, run `/onboard-me` for a guided tour of the codebase.
 
 Before opening:
 
-- [ ] Lint, type-check, tests and build pass locally.
+- [ ] Lint, type-check, tests and build pass locally (for this repo: `npm run check`).
 - [ ] You tested the change by hand (screenshots / GIF for UI or visual changes).
 - [ ] You can explain **every line** of the diff in your own words.
 - [ ] You filled in every section of the PR template, **including AI disclosure**.

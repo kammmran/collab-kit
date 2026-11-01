@@ -6,7 +6,9 @@ your project. Delete this file after setup.
 ## What's inside
 
 ```
-AGENTS.md                         ← single source of truth for ALL AI agents
+AGENTS.md                         ← single source of truth for ALL AI agents (loaded every session)
+docs/agents/                      ← repo map, conventions, project notes: read on demand
+context-budget.json               ← token budgets for the always-loaded instruction files
 CLAUDE.md                         ← Claude Code: imports @AGENTS.md
 .cursor/rules/project.mdc         ← Cursor: always-on rule pointing to AGENTS.md
 .github/copilot-instructions.md   ← GitHub Copilot: points to AGENTS.md
@@ -25,6 +27,9 @@ CODE_OF_CONDUCT.md
   collab-rules-builder/  ← YOU run it: Claude Code reads the repo and fills AGENTS.md
   onboard-me/            ← newcomers run it: guided tour + good first tasks
   pre-pr-check/          ← contributors run it before a PR: checks + drafts PR with disclosure
+
+scripts/setup.mjs                 ← `npm run setup`: asks about your project, fills the files in
+scripts/check-context.mjs         ← `npm run check:context`: fails if the rules get too big
 ```
 
 ## Install (5 minutes)
@@ -34,12 +39,15 @@ CODE_OF_CONDUCT.md
 # Keep its existing README, package scripts, configuration, and Git metadata.
 cd /path/to/your-repo
 
-# 2. let Claude Code read the project and fill in the AUTO sections
+# 2. answer the setup questions in the terminal; nothing is written until you confirm
+npm run setup                 # or: npm run setup -- --dry-run to see the detected answers
+
+# 3. let Claude Code read the project and replace the remaining TODOs
 claude
 > /collab-rules-builder
 
-# 3. review the diff, answer the TODOs, then commit
-git add AGENTS.md CLAUDE.md CONTRIBUTING.md AI_POLICY.md CODE_OF_CONDUCT.md .github .claude .cursor .gemini
+# 4. review the diff, answer the TODOs, then commit
+git add AGENTS.md CLAUDE.md CONTRIBUTING.md AI_POLICY.md CODE_OF_CONDUCT.md docs .github .claude .cursor .gemini
 git commit -m "docs: add collaboration rules for humans and AI agents"
 ```
 
@@ -50,8 +58,11 @@ Then on GitHub:
 - Create labels `good first issue`, `help wanted`, `bug`, `enhancement`, `triage`, `question`.
 - Set the Discussions URL to your repository and review the Code of Conduct reporting guidance.
 
-The current `AGENTS.md` AUTO sections describe this kit; regenerate them for the
-destination project. The documentation CI job also needs the check tooling listed
+The current `AGENTS.md` and `docs/agents/` AUTO sections describe this kit; `npm run setup`
+replaces them with your answers and TODOs, and `/collab-rules-builder` drafts the rest.
+Because every agent reloads `AGENTS.md` in every session, keep the detail in `docs/agents/` and
+let `npm run check:context` tell you when the always-loaded rules have grown too big — see
+[keeping agent context small](README.md#keeping-agent-context-small). The documentation CI job also needs the check tooling listed
 in [README.md](README.md#set-up-in-your-project). Merge those files with existing
 tooling before enabling the job. For local verification, follow the
 [local check commands](README.md#local-checks).
@@ -75,6 +86,9 @@ disconnected.
 | [Edwarddev0723/ds-agent-rules](https://github.com/edwarddev0723/ds-agent-rules) | Ready-made rule presets for data science / ML / LLM projects, synced to Claude, Copilot, Codex, Gemini, Cursor, Windsurf | Good extra rules for your ML / science projects |
 | [PatrickJS/awesome-cursorrules](https://github.com/PatrickJS/awesome-cursorrules) | Huge library of stack-specific rule files | Borrow stack rules (React, Python, TypeScript…) into AGENTS.md §4 |
 | [Adobe AI repo harness guide](https://opensource.adobe.com/ai-repo-harness-guide/) | Pattern: CLAUDE.md = only `@AGENTS.md`; skills in `.agents/skills` symlinked into `.claude/skills` | If you later move skills to `.agents/skills/` |
+| [bgtvdm/context-optimizer](https://github.com/bgtvdm/context-optimizer) | Skill that audits CLAUDE.md / AGENTS.md / knowledge bases and writes a token-cost plan per file | A deeper one-off audit than `npm run check:context` gives |
+| [wrsmith108/claude-md-optimizer](https://github.com/wrsmith108/claude-md-optimizer) · [CaesiumY/agents-md-optimizer](https://github.com/CaesiumY/agents-md-optimizer) | Shrink an oversized rules file by progressive disclosure, or by dropping what an agent can discover from the code anyway | The method this kit's `docs/agents/` split follows |
+| [skillbudget](https://pypi.org/project/mujin-skillbudget/) | Python CLI that budgets always-loaded agent context (CLAUDE.md, skill descriptions, Cursor rules) and fails CI | If you prefer a published tool over this kit's `check:context` script |
 
 AI-contribution policies this kit's `AI_POLICY.md` is modelled on:
 [Node.js](https://github.com/nodejs/node/blob/main/doc/contributing/ai-guidelines.md) ·

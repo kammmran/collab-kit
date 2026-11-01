@@ -10,8 +10,9 @@ make sure they know the rules — not to write code for them yet.
 
 ## 1. Read first
 
-Read `AGENTS.md`, `CONTRIBUTING.md`, `AI_POLICY.md`, `README*`, the top-level folder tree, and the
-CI workflows in `.github/workflows/`. Skim 2–3 core source files.
+Read `AGENTS.md` and the reference files it links to in `docs/agents/` (repository map,
+conventions, project notes), then `CONTRIBUTING.md`, `AI_POLICY.md`, `README*`, the top-level
+folder tree, and the CI workflows in `.github/workflows/`. Skim 2–3 core source files.
 
 ## 2. Ask one question
 
@@ -21,8 +22,8 @@ their experience with the stack. Adapt everything below to the answer.
 ## 3. Give the tour (short, in plain language)
 
 1. **What the project is** — 2–3 sentences.
-2. **Map** — the 5–8 folders/files that matter, with what lives in each. Point at one example
-   file they can copy patterns from.
+2. **Map** — the 5–8 folders/files that matter, with what lives in each (see
+   `docs/agents/repo-map.md`). Point at one example file they can copy patterns from.
 3. **Run it** — the install / run / test commands from `AGENTS.md §3`. Offer to run them with
    them and explain any failure.
 4. **The rules that matter most** — in 5 bullets: claim an issue first; small focused PRs;

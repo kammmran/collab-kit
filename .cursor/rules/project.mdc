@@ -1,11 +1,9 @@
 ---
-description: Project-wide collaboration rules for AI agents (mirrors AGENTS.md)
+description: Project-wide collaboration rules for AI agents (points to AGENTS.md)
 alwaysApply: true
 ---
 
-Cursor also reads AGENTS.md natively. This rule makes sure it is always applied.
-
-Follow every rule in @AGENTS.md at the repository root. It is the single source of truth.
-In short: a human owns every change; read before writing; small focused diffs; never invent
-APIs, data or results; run lint + tests before saying "done"; never touch secrets; remind
-the human to add the AI disclosure to the PR (see @AI_POLICY.md).
+Follow every rule in @AGENTS.md at the repository root; it is the single source of truth, and
+reference material it links to in `docs/agents/` is there to be read when a task needs it.
+Cursor also reads AGENTS.md natively, so this rule only points there — a summary here would be
+loaded twice in every session.

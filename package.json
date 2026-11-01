@@ -6,10 +6,12 @@
     "node": ">=22"
   },
   "scripts": {
+    "setup": "node scripts/setup.mjs",
     "lint": "markdownlint-cli2",
     "check:links": "node scripts/check-links.mjs",
+    "check:context": "node scripts/check-context.mjs",
     "test": "node --test",
-    "check": "npm run lint && npm run check:links && npm test"
+    "check": "npm run lint && npm run check:links && npm run check:context && npm test"
   },
   "devDependencies": {
     "github-slugger": "2.0.0",
